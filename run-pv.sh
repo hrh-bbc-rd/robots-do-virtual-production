@@ -1,1 +1,1 @@
-java -jar  ~/photonvision-v2025.3.1-linuxarm64.jar
+java -jar  ~/photonvision-v2025.3.1-linuxx64.jar
