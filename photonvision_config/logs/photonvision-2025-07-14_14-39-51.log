@@ -1,0 +1,3 @@
+[2025-07-14 14:39:52] [General - Main] [INFO] Starting PhotonVision version v2025.3.2 on platform Linux x64
+[2025-07-14 14:39:52] [General - OsImageVersion] [WARN] Photon cannot locate base OS image version metadata at /opt/photonvision/image-version
+[2025-07-14 14:39:52] [General - Main] [ERROR] Failed to load native libraries!: Cannot invoke "java.util.List.iterator()" because "fileList" is null
