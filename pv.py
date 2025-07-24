@@ -1,9 +1,10 @@
 from photonlibpy import PhotonCamera, PhotonPoseEstimator, PoseStrategy
-from robotpy_apriltag import AprilTagField, AprilTagFieldLayout
+from robotpy_apriltag import AprilTagFieldLayout
 import wpimath.geometry
 import ntcore
 import logging
 import time
+import socket
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -42,13 +43,21 @@ pose_estimator = PhotonPoseEstimator(
     robotToCamera=kRobotToCam,
 )
 
-for i in range(10):  # Loop to repeatedly update the pose estimation
-    time.sleep(0.5)  # Wait for 0.5 seconds between updates
-    camEstPose = pose_estimator.update()  # Update the pose estimation
-    # Print the estimated pose (may be None if no pose is found)
-    if camEstPose is not None:
-        print(
-            f"t = {camEstPose.timestampSeconds}. Estimated pose = {camEstPose.estimatedPose}"
-        )
-    else:
-        print("No pose estimate available.")
+HOST = "127.0.0.1"  # Standard loopback interface address (localhost)
+PORT = 6666  # Port to listen on (non-privileged ports are > 1023)
+
+with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+    s.bind((HOST, PORT))
+    s.listen()
+    print("Server is listening...")
+    conn, addr = s.accept()
+    with conn:
+        print(f"Connected by {addr}")
+        while True:
+            camEstPose = pose_estimator.update()  # Update the pose estimation
+            data = f"[{camEstPose.timestampSeconds},{camEstPose.estimatedPose}]"
+            if not data:
+                break
+            conn.sendall(data.encode())
+            print("Sent to client")
+            time.sleep(1)
