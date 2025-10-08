@@ -72,11 +72,18 @@ def update_json_with_tags(existing_data, new_tags):
     return existing_data
 
 
+<<<<<<< HEAD
 def save_json(output_file, data):
     with open(output_file, "w") as f:
         json.dump(data, f, indent=2)
         f.write("\n")
     print(f"Wrote {output_file}")
+=======
+# Optionally update field info if needed
+existing_data["field"] = json_data.get("field", existing_data.get("field", {}))
+
+print("New list of tags in json", [tag["ID"] for tag in existing_data.get("tags", [])])
+>>>>>>> 3cafae9 (refactoring)
 
 
 def main(camera_name="USB_Capture_SDI", output_file="lr_singletag_map.json"):
