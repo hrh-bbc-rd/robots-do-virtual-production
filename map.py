@@ -24,48 +24,68 @@ time.sleep(3)  # Wait for the camera to initialize
 
 json_data = {"tags": [], "field": {"length": 0.0, "width": 0.0}}
 
-def append_taginfo(i, Q, T):
 
-    x = T.X()
-    y = T.Y()
-    z = T.Z()
+def add_tag_to_json(i, Q, T):
+    """
+    Adds tag information to the json_data["tags"] list.
 
-    q_x = Q.X()
-    q_y = Q.Y()
-    q_z = Q.Z()
-    q_w = Q.W()
-
+    Args:
+        i: Tag ID (int)
+        Q: Rotation as a quaternion
+        T: Translation
+    """
     json_data["tags"].append(
         {
             "ID": int(i),
             "pose": {
                 "translation": {
-                    "x": x,
-                    "y": y,
-                    "z": z,
+                    "x": T.X(),
+                    "y": T.Y(),
+                    "z": T.Z(),
                 },
                 "rotation": {
                     "quaternion": {
-                        "W": q_w,
-                        "X": q_x,
-                        "Y": q_y,
-                        "Z": q_z,
+                        "W": Q.W(),
+                        "X": Q.X(),
+                        "Y": Q.Y(),
+                        "Z": Q.Z(),
                     }
                 },
             },
         }
     )
 
-tags= camera.getLatestResult().getTargets()
+
+# Get the latest detected AprilTag targets from the camera
+tags = camera.getLatestResult().getTargets()
+
 for tag in tags:
-    i = tag.fiducialId
-    q=tag.bestCameraToTarget.rotation().getQuaternion()
-    x=tag.bestCameraToTarget.translation()
-    append_taginfo(i, q, x)
-    print(x.Y())
+    i = tag.fiducialId  # Tag ID
+    q = tag.bestCameraToTarget.rotation().getQuaternion()
+    x = tag.bestCameraToTarget.translation()
+    add_tag_to_json(i, q, x)  # Add tag info to the JSON data
 
+# Only add new tag entries that are not already present in the JSON file
+output_file = "lr_singletag_map.json"
 
+# Load existing data if file exists
+try:
+    with open(output_file, "r") as f:
+        existing_data = json.load(f)
+except (FileNotFoundError, json.JSONDecodeError):
+    existing_data = {"tags": [], "field": {"length": 0.0, "width": 0.0}}
 
-with open(f"lr_singletag_map.json", "w") as f:
-    json.dump(json_data, f, indent=2)
+# Build a set of existing tag IDs for quick lookup
+existing_tag_ids = {tag["ID"] for tag in existing_data.get("tags", [])}
+
+# Add only new tags from json_data
+for tag in json_data["tags"]:
+    if tag["ID"] not in existing_tag_ids:
+        existing_data["tags"].append(tag)
+
+# Optionally update field info if needed
+existing_data["field"] = json_data.get("field", existing_data.get("field", {}))
+
+with open(output_file, "w") as f:
+    json.dump(existing_data, f, indent=2)
     f.write("\n")
