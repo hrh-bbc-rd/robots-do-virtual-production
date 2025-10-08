@@ -72,19 +72,27 @@ output_file = "lr_singletag_map.json"
 try:
     with open(output_file, "r") as f:
         existing_data = json.load(f)
+        print(f"Adding to existing: {output_file}")
 except (FileNotFoundError, json.JSONDecodeError):
     existing_data = {"tags": [], "field": {"length": 0.0, "width": 0.0}}
+    print(f"Creating new file: {output_file}")
+
 
 # Build a set of existing tag IDs for quick lookup
 existing_tag_ids = {tag["ID"] for tag in existing_data.get("tags", [])}
+print(f"Existing tags are {existing_tag_ids}")
 
 # Add only new tags from json_data
 for tag in json_data["tags"]:
     if tag["ID"] not in existing_tag_ids:
         existing_data["tags"].append(tag)
 
+
 # Optionally update field info if needed
 existing_data["field"] = json_data.get("field", existing_data.get("field", {}))
+
+print(f"New list of tags in json {[tag["ID"] for tag in existing_data.get("tags", [])]}")
+
 
 with open(output_file, "w") as f:
     json.dump(existing_data, f, indent=2)
